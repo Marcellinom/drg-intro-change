@@ -13,8 +13,8 @@ import (
 	"time"
 )
 
-func getSteamLibraryPaths() ([]string, error) {
-	key, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Valve\Steam`, registry.QUERY_VALUE)
+func getSteamLibraryPaths(reg_key registry.Key) ([]string, error) {
+	key, err := registry.OpenKey(reg_key, `SOFTWARE\Valve\Steam`, registry.QUERY_VALUE)
 	if err != nil {
 		return nil, fmt.Errorf("error open key %w", err)
 	}
@@ -36,7 +36,7 @@ func getSteamLibraryPaths() ([]string, error) {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.Contains(line, "Steam") {
+		if strings.Contains(line, "path") {
 			libraryPaths = append(libraryPaths, line[10:])
 		}
 	}
@@ -63,10 +63,13 @@ func getDrgPath(lib_paths []string) (string, error) {
 
 func main() {
 	fmt.Println("getting steam path")
-	paths, err := getSteamLibraryPaths()
+	paths, err := getSteamLibraryPaths(registry.CURRENT_USER)
 	if err != nil {
-		fmt.Println("error while getting steam library path ", err)
-		fmt.Scanln()
+		paths, err = getSteamLibraryPaths(registry.LOCAL_MACHINE)
+		if err != nil {
+			fmt.Println("error while getting steam library path ", err)
+			fmt.Scanln()
+		}
 	}
 	fmt.Println("getting drg path")
 	drg_path, err := getDrgPath(paths)
@@ -84,8 +87,15 @@ func main() {
 	os.Rename(intro, output)
 	os.Rename(intro_lower, output_lower)
 
+	fmt.Print("paste a fetchable video link to be downloaded for new DRG intro: ")
+	var media string
+	_, err = fmt.Scanln(&media)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Scanln()
+	}
+
 	fmt.Println("downloading new intro")
-	media := "https://cdn.discordapp.com/attachments/669160526806515747/1275131912096055307/irtuwol-1509032510528892928-20220330_065921-vid1.mp4?ex=66c4c6a2&is=66c37522&hm=ccf438e98967b55383074b13669d3ab10eca1bf5b1c1a7ce0bf47fdd20f3133a&"
 	err = downloadFile(
 		media,
 		intro)
