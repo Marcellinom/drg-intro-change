@@ -1,7 +1,7 @@
 ## What it does
 Changes your Deep Rock Galactic's intro video
 ## How it works
-1. it searches for steam paths on your registry
+1. it searches for steam paths on your registry (for now, windows system only)
 2. find a downloaded DRG path from those steam paths
 3. renames old intro video (so you don't lose it)
 4. asks you for a video link to download
